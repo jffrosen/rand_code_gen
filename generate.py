@@ -2,6 +2,7 @@
 import sys
 import random
 
+jump_var = "jmp_val"
 insts = ["+", "-", "*", ">>"];
 operands = ["var0", "var1", "var2", "var3", "var4"]
 N_INSTS = len(insts)
@@ -21,9 +22,11 @@ def print_inc_block_ctr():
 	print "trav_ctr++;"
 
 def print_jump(num_blocks, total_travs):
-	target = random.randint(0, num_blocks - 1)
 	print "if (trav_ctr == %d)	goto Exit;" % total_travs
-	print "else goto B%d;" % target
+	print "else {"
+	print "%s = rand() %% %d;" % (jump_var, num_blocks)
+	print "goto Bjump;"
+	print "}"
 
 def print_one_inst():
 	inst1_idx = random.randint(0, N_INSTS - 1)
@@ -34,7 +37,7 @@ def print_one_inst():
 
 	if (random.randint(1,10) % 2):
 		print "%s %s= %s %s %s;" % (operands[dest_idx], 
-															  insts[inst1_idx],
+																insts[inst1_idx],
 																operands[source1_idx],
 																insts[inst2_idx], 
 																operands[source2_idx])
@@ -70,10 +73,23 @@ def generate_program(blocksize_in_insts, total_blocks, n_jumps):
 	# exit block
 	print_exit_block()
 
+def generate_jump_table(num_blocks):
+	print "Bjump:"
+	print "switch(%s) {" % jump_var
+	for b in range(0, num_blocks):
+		print "case(%d): goto B%d;" % (b, b)
+	print "}"
+	print ""
+
 def main(argv):
+	bs = 20
+	tb = 100000
+	tj = 100000000
 	print "int main() {"
-	generate_program(20, 5000, 100000000)
+	print "unsigned long long %s;" % jump_var
+	generate_jump_table(tb)
+	generate_program(bs, tb, tj)
 	print "}"
 
 if __name__ == "__main__":
-  main(sys.argv)
+	main(sys.argv)
